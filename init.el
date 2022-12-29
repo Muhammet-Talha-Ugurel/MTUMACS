@@ -1,9 +1,91 @@
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
 
 (unless (package-installed-p 'use-package)
 (package-install 'use-package))
+
+(use-package projectile
+  :ensure t
+  :config
+  (projectile-global-mode 1))
+
+(delete-selection-mode t)
+
+(use-package elfeed
+  :ensure t
+  :config
+  (setq elfeed-search-feed-face ":foreground #fff :weight bold"
+        elfeed-feeds (quote
+                       (("https://www.reddit.com/r/linux.rss" reddit linux)
+                        ("https://www.reddit.com/r/commandline.rss" reddit commandline)
+                        ("https://www.reddit.com/r/distrotube.rss" reddit distrotube)
+                        ("https://www.reddit.com/r/emacs.rss" reddit emacs)
+                        ("https://www.gamingonlinux.com/article_rss.php" gaming linux)
+                        ("https://hackaday.com/blog/feed/" hackaday linux)
+                        ("https://opensource.com/feed" opensource linux)
+                        ("https://linux.softpedia.com/backend.xml" softpedia linux)
+                        ("https://itsfoss.com/feed/" itsfoss linux)
+                        ("https://www.zdnet.com/topic/linux/rss.xml" zdnet linux)
+                        ("https://www.phoronix.com/rss.php" phoronix linux)
+                        ("http://feeds.feedburner.com/d0od" omgubuntu linux)
+                        ("https://www.computerworld.com/index.rss" computerworld linux)
+                        ("https://www.networkworld.com/category/linux/index.rss" networkworld linux)
+                        ("https://www.techrepublic.com/rssfeeds/topic/open-source/" techrepublic linux)
+                        ("https://betanews.com/feed" betanews linux)
+                        ("http://lxer.com/module/newswire/headlines.rss" lxer linux)
+                        ("https://distrowatch.com/news/dwd.xml" distrowatch linux)))))
+
+(use-package elfeed-goodies
+  :ensure t
+  :init
+  (elfeed-goodies/setup)
+  :config
+  (setq elfeed-goodies/entry-pane-size 0.5))
+
+(add-hook 'elfeed-show-mode-hook 'visual-line-mode)
+(evil-define-key 'normal elfeed-show-mode-map
+  (kbd "J") 'elfeed-goodies/split-show-next
+  (kbd "K") 'elfeed-goodies/split-show-prev)
+(evil-define-key 'normal elfeed-search-mode-map
+  (kbd "J") 'elfeed-goodies/split-show-next
+  (kbd "K") 'elfeed-goodies/split-show-prev)
+
+(use-package emojify
+  :ensure t
+  :hook (after-init . global-emojify-mode))
+
+;; Using garbage magic hack.
+ (use-package gcmh
+   :config
+   (gcmh-mode 1))
+;; Setting garbage collection threshold
+(setq gc-cons-threshold 402653184
+      gc-cons-percentage 0.6)
+
+;; Profile emacs startup
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (message "*** Emacs loaded in %s with %d garbage collections."
+                     (format "%.2f seconds"
+                             (float-time
+                              (time-subtract after-init-time before-init-time)))
+                     gcs-done)))
+
+;; Silence compiler warnings as they can be pretty disruptive (setq comp-async-report-warnings-errors nil)
+
+;; Silence compiler warnings as they can be pretty disruptive
+(if (boundp 'comp-deferred-compilation)
+    (setq comp-deferred-compilation nil)
+    (setq native-comp-deferred-compilation nil))
+;; In noninteractive sessions, prioritize non-byte-compiled source files to
+;; prevent the use of stale byte-code. Otherwise, it saves us a little IO time
+;; to skip the mtime checks on every *.elc file.
+(setq load-prefer-newer noninteractive)
 
 (use-package evil
   :ensure t
@@ -97,15 +179,14 @@
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
         doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  (load-theme 'doom-homage-black t)
+  ;;(load-theme 'doom-homage-black t)
+  (load-theme 'doom-one t)
   (doom-themes-org-config))
+
+(use-package all-the-icons :ensure t)
 
 (global-display-line-numbers-mode 1)
 (setq display-line-numbers-type 'relative)
-
-(menu-bar-mode -1)
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
 
 (use-package dashboard
   :ensure t
@@ -113,8 +194,8 @@
   (setq dashboard-set-heading-icons t)
   (setq dashboard-set-file-icons t)
   (setq dashboard-banner-logo-title "MTUEMACS")
-  (setq dashboard-startup-banner "~/.emacs-mtumacs.d/emacs-banner.png")  ;; use custom image as banner
-  (setq dashboard-center-content nil) ;; set to 't' for centered content
+  (setq dashboard-startup-banner "~/.emacs-mtumacs.d/the-logo-of-the-best-editor.png")  ;; use custom image as banner
+  (setq dashboard-center-content t) ;; set to 't' for centered content
   (setq dashboard-items '((recents . 5)
                           (agenda . 5 )
                           (bookmarks . 3)
@@ -125,6 +206,63 @@
   (dashboard-modify-heading-icons '((recents . "file-text")
 			      (bookmarks . "book"))))
 
+(setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+
 (use-package doom-modeline
 :ensure t)
 (doom-modeline-mode 1)
+
+(use-package all-the-icons-dired
+  :ensure t)
+(use-package dired-open
+  :ensure t)
+(use-package peep-dired
+  :ensure t)
+
+(nvmap :states '(normal visual) :keymaps 'override :prefix "SPC"
+               "d d" '(dired :which-key "Open dired")
+               "d j" '(dired-jump :which-key "Dired jump to current")
+               "d p" '(peep-dired :which-key "Peep-dired"))
+
+(with-eval-after-load 'dired
+  ;;(define-key dired-mode-map (kbd "M-p") 'peep-dired)
+  (evil-define-key 'normal dired-mode-map (kbd "h") 'dired-up-directory)
+  (evil-define-key 'normal dired-mode-map (kbd "l") 'dired-open-file) ; use dired-find-file instead if not using dired-open package
+  (evil-define-key 'normal peep-dired-mode-map (kbd "j") 'peep-dired-next-file)
+  (evil-define-key 'normal peep-dired-mode-map (kbd "k") 'peep-dired-prev-file))
+
+(add-hook 'peep-dired-hook 'evil-normalize-keymaps)
+;; Get file icons in dired
+(add-hook 'dired-mode-hook 'all-the-icons-dired-mode)
+;; With dired-open plugin, you can launch external programs for certain extensions
+;; For example, I set all .png files to open in 'sxiv' and all .mp4 files to open in 'mpv'
+(setq dired-open-extensions '(("gif" . "sxiv")
+                              ("jpg" . "sxiv")
+                              ("png" . "sxiv")
+                              ("mkv" . "mpv")
+                              ("mp4" . "mpv")))
+
+(use-package recentf
+  :ensure t
+  :config
+  (recentf-mode))
+(use-package sudo-edit
+  :ensure t)
+
+(defun dt/show-and-copy-buffer-path ()
+  "Show and copy the full path to the current file in the minibuffer."
+  (interactive)
+  ;; list-buffers-directory is the variable set in dired buffers
+  (let ((file-name (or (buffer-file-name) list-buffers-directory)))
+    (if file-name
+        (message (kill-new file-name))
+      (error "Buffer not visiting a file"))))
+(defun dt/show-buffer-path-name ()
+  "Show the full path to the current file in the minibuffer."
+  (interactive)
+  (let ((file-name (buffer-file-name)))
+    (if file-name
+        (progn
+          (message file-name)
+          (kill-new file-name))
+      (error "Buffer not visiting a file"))))
