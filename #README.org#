@@ -1,21 +1,50 @@
+#+AUTHOR: MTU
+#+PROPERTY: header-args :tangle init.el
+
+* Disable Menubar, Toolbars and Scrollbars
+
+#+begin_src emacs-lisp
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
+#+end_src
 
+* Package Managment
+** Setup package.el for melpa.
+
+#+begin_src emacs-lisp
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
+#+end_src
 
+** Setup use package for easy package magetment
+
+#+begin_src emacs-lisp
 (unless (package-installed-p 'use-package)
 (package-install 'use-package))
+#+end_src
 
+** Projectile package install
+
+#+begin_src emacs-lisp
 (use-package projectile
   :ensure t
   :config
   (projectile-global-mode 1))
+#+end_src
 
+** Delete Sellecetion
+
+#+begin_src emacs-lisp
 (delete-selection-mode t)
+#+end_src
 
+* Performance
+
+** Garbage collection
+
+#+begin_src emacs-lisp
 ;; Using garbage magic hack.
  (use-package gcmh
    :ensure t
@@ -35,7 +64,11 @@
                      gcs-done)))
 
 ;; Silence compiler warnings as they can be pretty disruptive (setq comp-async-report-warnings-errors nil)
+#+end_src
 
+** Native Compile
+
+#+begin_src emacs-lisp
 ;; Silence compiler warnings as they can be pretty disruptive
 (if (boundp 'comp-deferred-compilation)
     (setq comp-deferred-compilation nil)
@@ -44,7 +77,11 @@
 ;; prevent the use of stale byte-code. Otherwise, it saves us a little IO time
 ;; to skip the mtime checks on every *.elc file.
 (setq load-prefer-newer noninteractive)
+#+end_src
 
+* EVIL mode installation and set up
+
+#+begin_src emacs-lisp
 (use-package evil
   :ensure t
   :init      ;; tweak evil's configuration before loading it
@@ -59,15 +96,29 @@
   (setq evil-collection-mode-list '(dashboard dired ibuffer))
   (evil-collection-init))
 (use-package evil-tutor)
+#+end_src
 
+* Key Bindings
+
+** General Keybindings package
+
+#+begin_src emacs-lisp
 (use-package general
   :ensure t
   :config
   (general-evil-setup t))
+#+end_src
 
+** Zoom in and out
+
+#+begin_src emacs-lisp
 (global-set-key (kbd "C-=") 'text-scale-increase)
 (global-set-key (kbd "C--") 'text-scale-decrease)
+#+end_src
 
+** WHICH KEY
+
+#+begin_src emacs-lisp
 (use-package which-key
   :ensure t
   :init
@@ -84,7 +135,11 @@
         which-key-allow-imprecise-window-fit t
         which-key-separator " → " ))
 (which-key-mode)
+#+end_src
 
+** Buffer keys
+
+#+begin_src emacs-lisp
 (nvmap :prefix "SPC"
        "b b"   '(ibuffer :which-key "Ibuffer")
        "b c"   '(clone-indirect-buffer-other-window :which-key "Clone indirect buffer other window")
@@ -93,7 +148,11 @@
        "b p"   '(previous-buffer :which-key "Previous buffer")
        "b B"   '(ibuffer-list-buffers :which-key "Ibuffer list buffers")
        "b K"   '(kill-buffer :which-key "Kill buffer"))
+#+end_src
 
+*** File keys
+
+#+begin_src emacs-lisp
 (nvmap :states '(normal visual) :keymaps 'override :prefix "SPC"
        "."     '(find-file :which-key "Find file")
        "f f"   '(find-file :which-key "Find file")
@@ -106,7 +165,11 @@
        "f R"   '(rename-file :which-key "Rename file")
        "f S"   '(write-file :which-key "Save file as...")
        "f U"   '(sudo-edit :which-key "Sudo edit file"))
+#+end_src
 
+** Basic key bindings
+
+#+begin_src emacs-lisp
 (nvmap :keymaps 'override :prefix "SPC"
        "SPC"   '(counsel-M-x :which-key "M-x")
        "c c"   '(compile :which-key "Compile")
@@ -130,24 +193,43 @@
        "m T"   '(org-todo-list :which-key "Org todo list")
        "o a"   '(org-agenda :which-key "Org agenda")
        )
+#+end_src
 
-(use-package doom-themes
-  :ensure t
-  :config
-  ;; Global settings (defaults)
-  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-	doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  ;;(load-theme 'doom-homage-black t)
-  (load-theme 'soothe t nil)
-  ;;(load-theme 'doom-tokyo-night t)
-  ;;(load-theme 'doom-one t)
-  (doom-themes-org-config))
+* Theme
 
+** Doom Emacs theme package install and setup for gnu emacs
+
+#+begin_src emacs-lisp
+      (use-package doom-themes
+	:ensure t
+	:config
+	;; Global settings (defaults)
+	(setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+	      doom-themes-enable-italic t) ; if nil, italics is universally disabled
+	;;(load-theme 'doom-homage-black t)
+        (load-theme 'soothe)
+	;;(load-theme 'doom-tokyo-night t)
+	;;(load-theme 'doom-one t)
+	(doom-themes-org-config))
+#+end_src
+
+* Graphical User Interface
+
+** Icons
+
+#+begin_src emacs-lisp
 (use-package all-the-icons :ensure t)
+#+end_src
 
+** Line
+#+begin_src emacs-lisp
 (global-display-line-numbers-mode 1)
 (setq display-line-numbers-type 'relative)
+#+end_src
 
+** Dashboard
+
+#+begin_src emacs-lisp
 (use-package dashboard
   :ensure t
   :init      ;; tweak dashboard config before loading it
@@ -165,11 +247,24 @@
   (dashboard-setup-startup-hook)
   (dashboard-modify-heading-icons '((recents . "file-text")
 			      (bookmarks . "book"))))
+#+end_src
 
+** Emacs Clinet dashboard
+
+#+begin_src emacs-lisp
 (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+#+end_src
 
+** DOOM Mode line
+
+#+begin_src emacs-lisp
 (use-package doom-modeline
 :ensure t)
 (doom-modeline-mode 1)
+#+end_src
 
 
+* 42
+
+#+begin_src emacs-lisp
+#+end_src
