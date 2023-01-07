@@ -1,6 +1,7 @@
 (menu-bar-mode -1)
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
+  (tool-bar-mode -1)
+  (scroll-bar-mode -1)
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
@@ -14,36 +15,61 @@
   :config
   (projectile-global-mode 1))
 
+(use-package ivy
+    :ensure t
+    :diminish
+    :bind (("C-s" . swiper)
+	   :map ivy-minibuffer-map
+	   ("TAB" . ivy-alt-done)
+	   ("C-l" . ivy-alt-done)
+	   ("C-j" . ivy-next-line)
+	   ("C-k" . ivy-previous-line)
+	   :map ivy-switch-buffer-map
+	   ("C-k" . ivy-previous-line)
+	   ("C-l" . ivy-done)
+	   ("C-d" . ivy-switch-buffer-kill)
+	   :map ivy-reverse-i-search-map
+	   ("C-k" . ivy-previous-line)
+	   ("C-d" . ivy-reverse-i-search-kill))
+    :config
+    (ivy-mode 1))
+(use-package ivy-rich
+  :after ivy
+  :ensure t
+  :init
+  (ivy-rich-mode 1))
+
+(use-package counsel
+  :ensure t
+  :bind (("M-x" . counsel-M-x)
+         ("C-x b" . counsel-ibuffer)
+         ("C-x C-f" . counsel-find-file)
+         :map minibuffer-local-map
+         ("C-r" . 'counsel-minibuffer-history)))
+
+(use-package rainbow-delimiters
+  :ensure t
+  :hook (prog-mode . rainbow-delimiters-mode))
+
 (delete-selection-mode t)
 
-;; Using garbage magic hack.
- (use-package gcmh
-   :ensure t
-   :config
-   (gcmh-mode 1))
-;; Setting garbage collection threshold
-(setq gc-cons-threshold 402653184
-      gc-cons-percentage 0.6)
+(use-package projectile
+  :diminish projectile-mode
+  :config (projectile-mode)
+  :custom ((projectile-completion-system 'ivy))
+  :bind-keymap
+  ("C-c p" . projectile-command-map)
+  :init
+  ;; NOTE: Set this to the folder where you keep your Git repos!
+  (when (file-directory-p "~/Projects/Code")
+    (setq projectile-project-search-path '("~/Projects/Code")))
+  (setq projectile-switch-project-action #'projectile-dired))
 
-;; Profile emacs startup
-(add-hook 'emacs-startup-hook
-          (lambda ()
-            (message "*** Emacs loaded in %s with %d garbage collections."
-                     (format "%.2f seconds"
-                             (float-time
-                              (time-subtract after-init-time before-init-time)))
-                     gcs-done)))
+(use-package counsel-projectile
+  :config (counsel-projectile-mode))
 
-;; Silence compiler warnings as they can be pretty disruptive (setq comp-async-report-warnings-errors nil)
-
-;; Silence compiler warnings as they can be pretty disruptive
-(if (boundp 'comp-deferred-compilation)
-    (setq comp-deferred-compilation nil)
-    (setq native-comp-deferred-compilation nil))
-;; In noninteractive sessions, prioritize non-byte-compiled source files to
-;; prevent the use of stale byte-code. Otherwise, it saves us a little IO time
-;; to skip the mtime checks on every *.elc file.
-(setq load-prefer-newer noninteractive)
+(use-package magit
+:ensure t)
 
 (use-package evil
   :ensure t
@@ -137,8 +163,8 @@
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
 	doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  ;;(load-theme 'doom-homage-black t)
-  (load-theme 'soothe t nil)
+  (load-theme 'doom-homage-black t)
+  ;;(load-theme 'soothe t nil)
   ;;(load-theme 'doom-tokyo-night t)
   ;;(load-theme 'doom-one t)
   (doom-themes-org-config))
@@ -146,7 +172,12 @@
 (use-package all-the-icons :ensure t)
 
 (global-display-line-numbers-mode 1)
-(setq display-line-numbers-type 'relative)
+  (setq display-line-numbers-type 'relative)
+(dolist (mode '(org-mode-hook
+                term-mode-hook
+                shell-mode-hook
+                eshell-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
 (use-package dashboard
   :ensure t
@@ -171,5 +202,3 @@
 (use-package doom-modeline
 :ensure t)
 (doom-modeline-mode 1)
-
-
