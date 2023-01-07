@@ -4,9 +4,10 @@
 * Disable Menubar, Toolbars and Scrollbars
 
 #+begin_src emacs-lisp
-(menu-bar-mode -1)
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
+  (menu-bar-mode -1)
+  (tool-bar-mode -1)
+  (scroll-bar-mode -1)
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 #+end_src
 
 * Package Managment
@@ -34,49 +35,80 @@
   (projectile-global-mode 1))
 #+end_src
 
+** IVY install
+
+#+begin_src emacs-lisp
+    (use-package ivy
+      :ensure t
+      :diminish
+      :bind (("C-s" . swiper)
+	     :map ivy-minibuffer-map
+	     ("TAB" . ivy-alt-done)
+	     ("C-l" . ivy-alt-done)
+	     ("C-j" . ivy-next-line)
+	     ("C-k" . ivy-previous-line)
+	     :map ivy-switch-buffer-map
+	     ("C-k" . ivy-previous-line)
+	     ("C-l" . ivy-done)
+	     ("C-d" . ivy-switch-buffer-kill)
+	     :map ivy-reverse-i-search-map
+	     ("C-k" . ivy-previous-line)
+	     ("C-d" . ivy-reverse-i-search-kill))
+      :config
+      (ivy-mode 1))
+  (use-package ivy-rich
+    :after ivy
+    :ensure t
+    :init
+    (ivy-rich-mode 1))
+#+end_src
+
+** Counsel
+
+#+begin_src emacs-lisp
+(use-package counsel
+  :ensure t
+  :bind (("M-x" . counsel-M-x)
+         ("C-x b" . counsel-ibuffer)
+         ("C-x C-f" . counsel-find-file)
+         :map minibuffer-local-map
+         ("C-r" . 'counsel-minibuffer-history)))
+#+end_src
+
+** Raninbow parenetsis
+
+#+begin_src emacs-lisp
+(use-package rainbow-delimiters
+  :ensure t
+  :hook (prog-mode . rainbow-delimiters-mode))
+#+end_src
+
 ** Delete Sellecetion
 
 #+begin_src emacs-lisp
 (delete-selection-mode t)
 #+end_src
 
-* Performance
-
-** Garbage collection
-
 #+begin_src emacs-lisp
-;; Using garbage magic hack.
- (use-package gcmh
-   :ensure t
-   :config
-   (gcmh-mode 1))
-;; Setting garbage collection threshold
-(setq gc-cons-threshold 402653184
-      gc-cons-percentage 0.6)
+(use-package projectile
+  :diminish projectile-mode
+  :config (projectile-mode)
+  :custom ((projectile-completion-system 'ivy))
+  :bind-keymap
+  ("C-c p" . projectile-command-map)
+  :init
+  ;; NOTE: Set this to the folder where you keep your Git repos!
+  (when (file-directory-p "~/Projects/Code")
+    (setq projectile-project-search-path '("~/Projects/Code")))
+  (setq projectile-switch-project-action #'projectile-dired))
 
-;; Profile emacs startup
-(add-hook 'emacs-startup-hook
-          (lambda ()
-            (message "*** Emacs loaded in %s with %d garbage collections."
-                     (format "%.2f seconds"
-                             (float-time
-                              (time-subtract after-init-time before-init-time)))
-                     gcs-done)))
-
-;; Silence compiler warnings as they can be pretty disruptive (setq comp-async-report-warnings-errors nil)
+(use-package counsel-projectile
+  :config (counsel-projectile-mode))
 #+end_src
 
-** Native Compile
-
 #+begin_src emacs-lisp
-;; Silence compiler warnings as they can be pretty disruptive
-(if (boundp 'comp-deferred-compilation)
-    (setq comp-deferred-compilation nil)
-    (setq native-comp-deferred-compilation nil))
-;; In noninteractive sessions, prioritize non-byte-compiled source files to
-;; prevent the use of stale byte-code. Otherwise, it saves us a little IO time
-;; to skip the mtime checks on every *.elc file.
-(setq load-prefer-newer noninteractive)
+  (use-package magit
+  :ensure t)
 #+end_src
 
 * EVIL mode installation and set up
@@ -206,8 +238,8 @@
 	;; Global settings (defaults)
 	(setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
 	      doom-themes-enable-italic t) ; if nil, italics is universally disabled
-	;;(load-theme 'doom-homage-black t)
-        (load-theme 'soothe t nil)
+	(load-theme 'doom-homage-black t)
+        ;;(load-theme 'soothe t nil)
 	;;(load-theme 'doom-tokyo-night t)
 	;;(load-theme 'doom-one t)
 	(doom-themes-org-config))
@@ -223,8 +255,13 @@
 
 ** Line
 #+begin_src emacs-lisp
-(global-display-line-numbers-mode 1)
-(setq display-line-numbers-type 'relative)
+  (global-display-line-numbers-mode 1)
+  (setq display-line-numbers-type 'relative)
+(dolist (mode '(org-mode-hook
+                term-mode-hook
+                shell-mode-hook
+                eshell-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 0))))
 #+end_src
 
 ** Dashboard
@@ -261,10 +298,4 @@
 (use-package doom-modeline
 :ensure t)
 (doom-modeline-mode 1)
-#+end_src
-
-
-* 42
-
-#+begin_src emacs-lisp
 #+end_src
