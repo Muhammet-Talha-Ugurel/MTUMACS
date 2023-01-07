@@ -1,1 +1,3 @@
-((magit-commit nil))
+((magit-commit nil)
+ (magit-dispatch nil)
+ (magit-gitignore nil))
