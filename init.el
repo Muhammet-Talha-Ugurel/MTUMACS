@@ -61,16 +61,22 @@
 :ensure t)
 (doom-modeline-mode 1)
 
+(setq scroll-conservatively 101) ;; value greater than 100 gets rid of half page jumping
+(setq mouse-wheel-scroll-amount '(3 ((shift) . 3))) ;; how many lines at a time
+(setq mouse-wheel-progressive-speed t) ;; accelerate scrolling
+(setq mouse-wheel-follow-mouse 't)
+
 (use-package projectile
   :ensure t
   :config
   (projectile-global-mode 1))
 
 (use-package ivy
-    :ensure t
-    :diminish
-    :bind (("C-s" . swiper)
+	:ensure t
+	:diminish
+	:bind (("C-s" . swiper)
 	   :map ivy-minibuffer-map
+	   ("TAB" . ivy-alt-done)
 	   ("C-a" . ivy-alt-done)
 	   ("C-j" . ivy-next-line)
 	   ("C-k" . ivy-previous-line)
@@ -81,8 +87,8 @@
 	   :map ivy-reverse-i-search-map
 	   ("C-k" . ivy-previous-line)
 	   ("C-d" . ivy-reverse-i-search-kill))
-    :config
-    (ivy-mode 1))
+	:config
+	(ivy-mode 1))
 (use-package ivy-rich
   :after ivy
   :ensure t
@@ -237,7 +243,7 @@
    "SPC"   '(counsel-M-x :which-key "M-x")
    "c c"   '(compile :which-key "Compile")
    "c C"   '(recompile :which-key "Recompile")
-   "h r r" '((lambda () (interactive) (load-file "~/.emacs.d/init.el")) :which-key "Reload emacs config")
+   "h r r" '((lambda () (interactive) (load-file "~/.emacs-mtumacs.d/init.el")) :which-key "Reload emacs config")
    "t t"   '(toggle-truncate-lines :which-key "Toggle truncate lines"))
 (nvmap :keymaps 'override :prefix "SPC"
    "m *"   '(org-ctrl-c-star :which-key "Org-ctrl-c-star")
@@ -257,17 +263,16 @@
    "o a"   '(org-agenda :which-key "Org agenda"))
 
 (defun efs/lsp-mode-setup ()
-	(setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
-	(lsp-headerline-breadcrumb-mode))
-	(use-package lsp-mode
-	:ensure t
-	  :commands (lsp lsp-deferred)
-	  :hook (lsp-mode . efs/lsp-mode-setup)
-	  :init
-	  (setq lsp-keymap-prefix "C-l")  ;; 'C-l'
-	  :config
-(lsp-enable-on-type-formatting nil)
-	  (lsp-enable-which-key-integration t))
+  (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+  (lsp-headerline-breadcrumb-mode))
+  (use-package lsp-mode
+  :ensure t
+	:commands (lsp lsp-deferred)
+	:hook (lsp-mode . efs/lsp-mode-setup)
+	:init
+	(setq lsp-keymap-prefix "C-l")  ;; 'C-l'
+	:config
+  (lsp-enable-which-key-integration t))
 
 (setq-default indent-tabs-mode t)
   (setq backward-delete-char-untabify-method nil)
@@ -280,3 +285,43 @@
   ;;(add-hook 'c-mode-hook ;; guessing
 	;; '(lambda ()
 	  ;;(local-set-key "TAB" 'my-insert-tab-char)))
+
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 6))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
+(use-package copilot
+		  :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
+		  :ensure t)
+	  (add-hook 'prog-mode-hook 'copilot-mode)
+	(with-eval-after-load 'company
+	  ;; disable inline previews
+	  (delq 'company-preview-if-just-one-frontend company-frontends))
+  
+	(define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
+	(define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
+  (defun my-tab ()
+	(interactive)
+	(or (copilot-accept-completion)
+		(ac-expand nil)))
+
+  (with-eval-after-load 'auto-complete
+	; disable inline preview
+	(setq ac-disable-inline t)
+	; show menu if have only one candidate
+	(setq ac-candidate-menu-min 0))
+  
+  (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
+  (define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
+(with-eval-after-load 'copilot
+  (evil-define-key 'insert copilot-mode-map
+    (kbd "<tab>") #'my/copilot-tab))
