@@ -5,10 +5,61 @@
 
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-(package-initialize)
+(setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                         ("org" . "https://orgmode.org/elpa/")
+                         ("elpa" . "https://elpa.gnu.org/packages/")))
+  (package-initialize)
 
 (unless (package-installed-p 'use-package)
 (package-install 'use-package))
+
+(delete-selection-mode t)
+
+(use-package doom-themes
+:ensure t
+:config
+;; Global settings (defaults)
+(setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+	  doom-themes-enable-italic t) ; if nil, italics is universally disabled
+(load-theme 'doom-homage-black t)
+    ;;(load-theme 'soothe t nil)
+;;(load-theme 'doom-tokyo-night t)
+;;(load-theme 'doom-one t)
+(doom-themes-org-config))
+
+(use-package all-the-icons :ensure t)
+
+(global-display-line-numbers-mode 1)
+  (setq display-line-numbers-type 'relative)
+(dolist (mode '(org-mode-hook
+                term-mode-hook
+                shell-mode-hook
+                eshell-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
+(use-package dashboard
+  :ensure t
+  :init      ;; tweak dashboard config before loading it
+  (setq dashboard-set-heading-icons t)
+  (setq dashboard-set-file-icons t)
+  (setq dashboard-banner-logo-title "MTUEMACS")
+  (setq dashboard-startup-banner "~/.emacs-mtumacs.d/the-logo-of-the-best-editor.png")  ;; use custom image as banner
+  (setq dashboard-center-content t) ;; set to 't' for centered content
+  (setq dashboard-items '((recents . 5)
+                          (agenda . 5 )
+                          (bookmarks . 3)
+                          (projects . 3)
+                          (registers . 3)))
+  :config
+  (dashboard-setup-startup-hook)
+  (dashboard-modify-heading-icons '((recents . "file-text")
+			      (bookmarks . "book"))))
+
+(setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+
+(use-package doom-modeline
+:ensure t)
+(doom-modeline-mode 1)
 
 (use-package projectile
   :ensure t
@@ -20,8 +71,7 @@
     :diminish
     :bind (("C-s" . swiper)
 	   :map ivy-minibuffer-map
-	   ("TAB" . ivy-alt-done)
-	   ("C-l" . ivy-alt-done)
+	   ("C-a" . ivy-alt-done)
 	   ("C-j" . ivy-next-line)
 	   ("C-k" . ivy-previous-line)
 	   :map ivy-switch-buffer-map
@@ -51,8 +101,6 @@
   :ensure t
   :hook (prog-mode . rainbow-delimiters-mode))
 
-(delete-selection-mode t)
-
 (use-package projectile
   :diminish projectile-mode
   :config (projectile-mode)
@@ -69,7 +117,58 @@
   :config (counsel-projectile-mode))
 
 (use-package magit
-:ensure t)
+  :ensure t)
+;;(use-package forge
+ ;;:ensure t)
+
+(defun efs/org-font-setup ()
+  ;; Replace list hyphen with dot
+  (font-lock-add-keywords 'org-mode
+			  '(("^ *\\([-]\\) "
+			     (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+
+  ;; Set faces for heading levels
+  (dolist (face '((org-level-1 . 1.2)
+		  (org-level-2 . 1.1)
+		  (org-level-3 . 1.05)
+		  (org-level-4 . 1.0)
+		  (org-level-5 . 1.1)
+		  (org-level-6 . 1.1)
+		  (org-level-7 . 1.1)
+		  (org-level-8 . 1.1)))
+    )
+
+  ;; Ensure that anything that should be fixed-pitch in Org files appears that way
+  (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
+
+(use-package org
+:ensure t
+  :hook (org-mode . efs/org-mode-setup)
+  :config
+  (setq org-ellipsis " ▾")
+  (efs/org-font-setup))
+
+(use-package org-bullets
+:ensure t
+  :after org
+  :hook (org-mode . org-bullets-mode)
+  :custom
+  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+
+(defun efs/org-mode-visual-fill ()
+  (setq visual-fill-column-width 120
+	visual-fill-column-center-text t)
+  (visual-fill-column-mode 1))
+
+(use-package visual-fill-column
+:ensure t
+  :hook (org-mode . efs/org-mode-visual-fill))
 
 (use-package evil
   :ensure t
@@ -78,6 +177,7 @@
   (setq evil-want-keybinding nil)
   (setq evil-vsplit-window-right t)
   (setq evil-split-window-below t)
+  (setq evil-want-C-i-jump nil)
   (evil-mode))
 (use-package evil-collection
   :after evil
@@ -134,71 +234,49 @@
        "f U"   '(sudo-edit :which-key "Sudo edit file"))
 
 (nvmap :keymaps 'override :prefix "SPC"
-       "SPC"   '(counsel-M-x :which-key "M-x")
-       "c c"   '(compile :which-key "Compile")
-       "c C"   '(recompile :which-key "Recompile")
-       "h r r" '((lambda () (interactive) (load-file "~/.emacs.d/init.el")) :which-key "Reload emacs config")
-       "t t"   '(toggle-truncate-lines :which-key "Toggle truncate lines"))
+   "SPC"   '(counsel-M-x :which-key "M-x")
+   "c c"   '(compile :which-key "Compile")
+   "c C"   '(recompile :which-key "Recompile")
+   "h r r" '((lambda () (interactive) (load-file "~/.emacs.d/init.el")) :which-key "Reload emacs config")
+   "t t"   '(toggle-truncate-lines :which-key "Toggle truncate lines"))
 (nvmap :keymaps 'override :prefix "SPC"
-       "m *"   '(org-ctrl-c-star :which-key "Org-ctrl-c-star")
-       "m +"   '(org-ctrl-c-minus :which-key "Org-ctrl-c-minus")
-       "m ."   '(counsel-org-goto :which-key "Counsel org goto")
-       "m e"   '(org-export-dispatch :which-key "Org export dispatch")
-       "m f"   '(org-footnote-new :which-key "Org footnote new")
-       "m h"   '(org-toggle-heading :which-key "Org toggle heading")
-       "m i"   '(org-toggle-item :which-key "Org toggle item")
-       "m n"   '(org-store-link :which-key "Org store link")
-       "m o"   '(org-set-property :which-key "Org set property")
-       "m t"   '(org-todo :which-key "Org todo")
-       "m x"   '(org-toggle-checkbox :which-key "Org toggle checkbox")
-       "m B"   '(org-babel-tangle :which-key "Org babel tangle")
-       "m I"   '(org-toggle-inline-images :which-key "Org toggle inline imager")
-       "m T"   '(org-todo-list :which-key "Org todo list")
-       "o a"   '(org-agenda :which-key "Org agenda")
-       )
+   "m *"   '(org-ctrl-c-star :which-key "Org-ctrl-c-star")
+   "m +"   '(org-ctrl-c-minus :which-key "Org-ctrl-c-minus")
+   "m ."   '(counsel-org-goto :which-key "Counsel org goto")
+   "m e"   '(org-export-dispatch :which-key "Org export dispatch")
+   "m f"   '(org-footnote-new :which-key "Org footnote new")
+   "m h"   '(org-toggle-heading :which-key "Org toggle heading")
+   "m i"   '(org-toggle-item :which-key "Org toggle item")
+   "m n"   '(org-store-link :which-key "Org store link")
+   "m o"   '(org-set-property :which-key "Org set property")
+   "m t"   '(org-todo :which-key "Org todo")
+   "m x"   '(org-toggle-checkbox :which-key "Org toggle checkbox")
+   "m B"   '(org-babel-tangle :which-key "Org babel tangle")
+   "m I"   '(org-toggle-inline-images :which-key "Org toggle inline imager")
+   "m T"   '(org-todo-list :which-key "Org todo list")
+   "o a"   '(org-agenda :which-key "Org agenda"))
 
-(use-package doom-themes
-  :ensure t
-  :config
-  ;; Global settings (defaults)
-  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-	doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  (load-theme 'doom-homage-black t)
-  ;;(load-theme 'soothe t nil)
-  ;;(load-theme 'doom-tokyo-night t)
-  ;;(load-theme 'doom-one t)
-  (doom-themes-org-config))
+(defun efs/lsp-mode-setup ()
+	(setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+	(lsp-headerline-breadcrumb-mode))
+	(use-package lsp-mode
+	:ensure t
+	  :commands (lsp lsp-deferred)
+	  :hook (lsp-mode . efs/lsp-mode-setup)
+	  :init
+	  (setq lsp-keymap-prefix "C-l")  ;; 'C-l'
+	  :config
+(lsp-enable-on-type-formatting nil)
+	  (lsp-enable-which-key-integration t))
 
-(use-package all-the-icons :ensure t)
-
-(global-display-line-numbers-mode 1)
-  (setq display-line-numbers-type 'relative)
-(dolist (mode '(org-mode-hook
-                term-mode-hook
-                shell-mode-hook
-                eshell-mode-hook))
-  (add-hook mode (lambda () (display-line-numbers-mode 0))))
-
-(use-package dashboard
-  :ensure t
-  :init      ;; tweak dashboard config before loading it
-  (setq dashboard-set-heading-icons t)
-  (setq dashboard-set-file-icons t)
-  (setq dashboard-banner-logo-title "MTUEMACS")
-  (setq dashboard-startup-banner "~/.emacs-mtumacs.d/the-logo-of-the-best-editor.png")  ;; use custom image as banner
-  (setq dashboard-center-content t) ;; set to 't' for centered content
-  (setq dashboard-items '((recents . 5)
-                          (agenda . 5 )
-                          (bookmarks . 3)
-                          (projects . 3)
-                          (registers . 3)))
-  :config
-  (dashboard-setup-startup-hook)
-  (dashboard-modify-heading-icons '((recents . "file-text")
-			      (bookmarks . "book"))))
-
-(setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
-
-(use-package doom-modeline
-:ensure t)
-(doom-modeline-mode 1)
+(setq-default indent-tabs-mode t)
+  (setq backward-delete-char-untabify-method nil)
+(setq-default tab-width 4)
+  (setq indent-tabs-mode t)
+  (defun my-insert-tab-char ()
+  (interactive)
+  (insert "\t"))
+(global-set-key (kbd "TAB") 'my-insert-tab-char)
+  ;;(add-hook 'c-mode-hook ;; guessing
+	;; '(lambda ()
+	  ;;(local-set-key "TAB" 'my-insert-tab-char)))
