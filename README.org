@@ -1,4 +1,4 @@
-	#+AUTHOR: MTU
+			#+AUTHOR: MTU
 #+PROPERTY: header-args :tangle init.el
 
 * Disable Menubar, Toolbars and Scrollbars
@@ -45,8 +45,9 @@
 	;; Global settings (defaults)
 	(setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
 	      doom-themes-enable-italic t) ; if nil, italics is universally disabled
-	(load-theme 'doom-homage-black t)
+	;;(load-theme 'doom-homage-black t)
         ;;(load-theme 'soothe t nil)
+	(load-theme 'doom-acario-dark t)
 	;;(load-theme 'doom-tokyo-night t)
 	;;(load-theme 'doom-one t)
 	(doom-themes-org-config))
@@ -62,15 +63,18 @@
 
 ** Line
 #+begin_src emacs-lisp
-  (global-display-line-numbers-mode 1)
-  (setq display-line-numbers-type 'relative)
-(dolist (mode '(org-mode-hook
-                term-mode-hook
-                shell-mode-hook
-                eshell-mode-hook))
-  (add-hook mode (lambda () (display-line-numbers-mode 0))))
+	(global-display-line-numbers-mode 1)
+	(setq display-line-numbers-type 'relative)
+  (dolist (mode '(org-mode-hook
+				  term-mode-hook
+				  shell-mode-hook
+				  eshell-mode-hook))
+	(add-hook mode (lambda () (display-line-numbers-mode 0))))
+	(use-package beacon
+	:ensure t)
+	(beacon-mode t)
 #+end_src
-
+	
 ** Dashboard
 
 #+begin_src emacs-lisp
@@ -116,6 +120,14 @@
 (setq mouse-wheel-follow-mouse 't)
 #+end_src
 
+** Minimap
+
+#+begin_src emacs-lisp
+	(use-package minimap
+	:ensure t)
+	(setq minimap-window-location 'right)
+#+end_src
+
 * Instaling Packages
 
 ** Projectile package install
@@ -158,16 +170,18 @@
 ** Counsel
 
 #+begin_src emacs-lisp
-(use-package counsel
-  :ensure t
-  :bind (("M-x" . counsel-M-x)
-         ("C-x b" . counsel-ibuffer)
-         ("C-x C-f" . counsel-find-file)
-         :map minibuffer-local-map
-         ("C-r" . 'counsel-minibuffer-history)))
+		(use-package counsel
+			:ensure t
+			:bind (("M-x" . counsel-M-x)
+						 ("C-x b" . counsel-ibuffer)
+						 ("C-x C-f" . counsel-find-file)
+						 :map minibuffer-local-map
+						 ("C-r" . 'counsel-minibuffer-history)))
+		(use-package smex
+		:ensure t)
 #+end_src
 
-** Raninbow parenetsis
+ * Raninbow parenetsis
 
 #+begin_src emacs-lisp
 (use-package rainbow-delimiters
@@ -287,13 +301,6 @@
   (general-evil-setup t))
 #+end_src
 
-** Zoom in and out
-
-#+begin_src emacs-lisp
-(global-set-key (kbd "C-=") 'text-scale-increase)
-(global-set-key (kbd "C--") 'text-scale-decrease)
-#+end_src
-
 ** WHICH KEY
 
 #+begin_src emacs-lisp
@@ -315,61 +322,66 @@
 (which-key-mode)
 #+end_src
 
-** Buffer keys
-
-#+begin_src emacs-lisp
-(nvmap :prefix "SPC"
-       "b b"   '(ibuffer :which-key "Ibuffer")
-       "b c"   '(clone-indirect-buffer-other-window :which-key "Clone indirect buffer other window")
-       "b k"   '(kill-current-buffer :which-key "Kill current buffer")
-       "b n"   '(next-buffer :which-key "Next buffer")
-       "b p"   '(previous-buffer :which-key "Previous buffer")
-       "b B"   '(ibuffer-list-buffers :which-key "Ibuffer list buffers")
-       "b K"   '(kill-buffer :which-key "Kill buffer"))
-#+end_src
-
-** File keys
-
-#+begin_src emacs-lisp
-(nvmap :states '(normal visual) :keymaps 'override :prefix "SPC"
-       "."     '(find-file :which-key "Find file")
-       "f f"   '(find-file :which-key "Find file")
-       "f r"   '(counsel-recentf :which-key "Recent files")
-       "f s"   '(save-buffer :which-key "Save file")
-       "f u"   '(sudo-edit-find-file :which-key "Sudo find file")
-       "f y"   '(dt/show-and-copy-buffer-path :which-key "Yank file path")
-       "f C"   '(copy-file :which-key "Copy file")
-       "f D"   '(delete-file :which-key "Delete file")
-       "f R"   '(rename-file :which-key "Rename file")
-       "f S"   '(write-file :which-key "Save file as...")
-       "f U"   '(sudo-edit :which-key "Sudo edit file"))
-#+end_src
-
 ** Basic key bindings
 
 #+begin_src emacs-lisp
-      (nvmap :keymaps 'override :prefix "SPC"
-	     "SPC"   '(counsel-M-x :which-key "M-x")
-	     "c c"   '(compile :which-key "Compile")
-	     "c C"   '(recompile :which-key "Recompile")
-	     "h r r" '((lambda () (interactive) (load-file "~/.emacs-mtumacs.d/init.el")) :which-key "Reload emacs config")
-	     "t t"   '(toggle-truncate-lines :which-key "Toggle truncate lines"))
-      (nvmap :keymaps 'override :prefix "SPC"
-	     "m *"   '(org-ctrl-c-star :which-key "Org-ctrl-c-star")
-	     "m +"   '(org-ctrl-c-minus :which-key "Org-ctrl-c-minus")
-	     "m ."   '(counsel-org-goto :which-key "Counsel org goto")
-	     "m e"   '(org-export-dispatch :which-key "Org export dispatch")
-	     "m f"   '(org-footnote-new :which-key "Org footnote new")
-	     "m h"   '(org-toggle-heading :which-key "Org toggle heading")
-	     "m i"   '(org-toggle-item :which-key "Org toggle item")
-	     "m n"   '(org-store-link :which-key "Org store link")
-	     "m o"   '(org-set-property :which-key "Org set property")
-	     "m t"   '(org-todo :which-key "Org todo")
-	     "m x"   '(org-toggle-checkbox :which-key "Org toggle checkbox")
-	     "m B"   '(org-babel-tangle :which-key "Org babel tangle")
-	     "m I"   '(org-toggle-inline-images :which-key "Org toggle inline imager")
-	     "m T"   '(org-todo-list :which-key "Org todo list")
-	     "o a"   '(org-agenda :which-key "Org agenda"))
+;; BUFFER keys
+(nvmap :prefix "SPC"
+	"b"     '(:which-key "Ibuffer")
+	"b b"   '(ibuffer :which-key "Ibuffer")
+	"b c"   '(clone-indirect-buffer-other-window :which-key "Clone indirect buffer other window")
+	"b k"   '(kill-current-buffer :which-key "Kill current buffer")
+	"]"   '(next-buffer :which-key "Next buffer")
+	"b n"   '(next-buffer :which-key "Next buffer")
+	"["   '(previous-buffer :which-key "Previous buffer")
+	"b p"   '(previous-buffer :which-key "Previous buffer")
+	"b B"   '(ibuffer-list-buffers :which-key "Ibuffer list buffers")
+	"b K"   '(kill-buffer :which-key "Kill buffer"))
+;;FILE keys
+(nvmap :states '(normal visual) :keymaps 'override :prefix "SPC"
+	"."     '(find-file :which-key "Find file")
+	"f f"   '(find-file :which-key "Find file")
+	"f r"   '(counsel-recentf :which-key "Recent files")
+	"f s"   '(save-buffer :which-key "Save file")
+	"f u"   '(sudo-edit-find-file :which-key "Sudo find file")
+	"f y"   '(dt/show-and-copy-buffer-path :which-key "Yank file path")
+	"f C"   '(copy-file :which-key "Copy file")
+	"f D"   '(delete-file :which-key "Delete file")
+	"f R"   '(rename-file :which-key "Rename file")
+	"f S"   '(write-file :which-key "Save file as...")
+	"f U"   '(sudo-edit :which-key "Sudo edit file"))
+;; ZOOM IN and OUT
+(global-set-key (kbd "C-=") 'text-scale-increase)
+(global-set-key (kbd "C--") 'text-scale-decrease)
+;;CONFIG keys
+(nvmap :keymaps 'override :prefix "SPC"
+	"SPC"   '(counsel-M-x :which-key "M-x")
+	"c c"   '(compile :which-key "Compile")
+	"c C"   '(recompile :which-key "Recompile")
+	"r r" '((lambda () (interactive) (load-file "~/.emacs-mtumacs.d/init.el")) :which-key "Reload emacs config")
+	"t t"   '(toggle-truncate-lines :which-key "Toggle truncate lines"))
+;; TAB mode keys
+(nvmap :keymaps 'override :prefix "SPC"
+	"t n"   '(tab-next :which-key "Swich to next tab")
+	"t ."   '(tab-next :which-key "Swich to next tab")
+	"t ,"   '(tab-previous :which-key "Swich to previous tab"))
+;; ORG mode keys
+(nvmap :keymaps 'override :prefix "SPC"
+	"o *"   '(org-ctrl-c-star :which-key "Org-ctrl-c-star")
+	"o +"   '(org-ctrl-c-minus :which-key "Org-ctrl-c-minus")
+	"o ."   '(counsel-org-goto :which-key "Counsel org goto")
+	"o e"   '(org-export-dispatch :which-key "Org export dispatch")
+	"o f"   '(org-footnote-new :which-key "Org footnote new")
+	"o h"   '(org-toggle-heading :which-key "Org toggle heading")
+	"o i"   '(org-toggle-item :which-key "Org toggle item")
+	"o n"   '(org-store-link :which-key "Org store link")
+	"o o"   '(org-set-property :which-key "Org set property")
+	"o t"   '(org-todo :which-key "Org todo")
+	"o x"   '(org-toggle-checkbox :which-key "Org toggle checkbox")
+	"o B"   '(org-babel-tangle :which-key "Org babel tangle")
+	"o I"   '(org-toggle-inline-images :which-key "Org toggle inline imager")
+	"o T"   '(org-todo-list :which-key "Org todo list")
+	"o a"   '(org-agenda :which-key "Org agenda"))
 #+end_src
 
 #+RESULTS:
@@ -395,7 +407,7 @@
 #+begin_src emacs-lisp
 	(setq-default indent-tabs-mode t)
 	(setq backward-delete-char-untabify-method nil)
-  (setq-default tab-width 4)
+  (setq-default tab-width 2)
 	(setq indent-tabs-mode t)
 	(defun my-insert-tab-char ()
 	(interactive)
@@ -409,45 +421,124 @@
 * Copilot
 
 #+begin_src emacs-lisp
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 6))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
+;(defvar bootstrap-version)
+;(let ((bootstrap-file
+;       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+;      (bootstrap-version 6))
+;  (unless (file-exists-p bootstrap-file)
+;    (with-current-buffer
+;        (url-retrieve-synchronously
+;         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+;         'silent 'inhibit-cookies)
+;      (goto-char (point-max))
+;      (eval-print-last-sexp)))
+;  (load bootstrap-file nil 'nomessage))
 #+end_src
 
 #+begin_src emacs-lisp
-		(use-package copilot
-		  :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
-		  :ensure t)
-	  (add-hook 'prog-mode-hook 'copilot-mode)
-	(with-eval-after-load 'company
-	  ;; disable inline previews
-	  (delq 'company-preview-if-just-one-frontend company-frontends))
-  
-	(define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
-	(define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
-  (defun my-tab ()
-	(interactive)
-	(or (copilot-accept-completion)
-		(ac-expand nil)))
+; 		(use-package copilot
+; 		  :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
+; 		:commands (copilot-mode)
+; 		  :ensure t)
+; 	(with-eval-after-load 'company
+; 	  ;; disable inline previews
+; 	  (delq 'company-preview-if-just-one-frontend company-frontends))
+;  
+; 	(define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
+; 	(define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
+;  (defun my-tab ()
+; 	(interactive)
+; 	(or (copilot-accept-completion)
+; 		(ac-expand nil)))
+; 
+;  (with-eval-after-load 'auto-complete
+; 	; disable inline preview
+; 	(setq ac-disable-inline t)
+; 	; show menu if have only one candidate
+; 	(setq ac-candidate-menu-min 0))
+;  
+;  (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
+;  (define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
+;(with-eval-after-load 'copilot
+;  (evil-define-key 'insert copilot-mode-map
+;    (kbd "<tab>") #'my/copilot-tab))
+#+end_src
 
-  (with-eval-after-load 'auto-complete
-	; disable inline preview
-	(setq ac-disable-inline t)
-	; show menu if have only one candidate
-	(setq ac-candidate-menu-min 0))
-  
-  (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
-  (define-key copilot-completion-map (kbd "TAB") 'copilot-accept-completion)
-(with-eval-after-load 'copilot
-  (evil-define-key 'insert copilot-mode-map
-    (kbd "<tab>") #'my/copilot-tab))
+#+RESULTS:
+
+* Terminal
+
+#+begin_src emacs-lisp
+			  (use-package term
+			:ensure t
+				:config
+				(setq explicit-shell-file-name "bash") ;; Change this to zsh, etc
+				;;(setq explicit-zsh-args '())         ;; Use 'explicit-<shell>-args for shell-specific args
+
+				;; Match the default Bash shell prompt.  Update this if you have a custom prompt
+				(setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *"))
+	;;		(use-package eterm-256color
+	;;		:ensure t
+	;;		  :hook (term-mode . eterm-256color-mode 1))
+		  (use-package vterm
+			:ensure t
+			:commands vterm
+			:config
+			(setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *")  ;; Set this to match your custom shell prompt
+			;;(setq vterm-shell "zsh")                       ;; Set this to customize the shell to launch
+			(setq vterm-max-scrollback 10000))
+		(defun efs/configure-eshell ()
+		  ;; Save command history when commands are entered
+		  (add-hook 'eshell-pre-command-hook 'eshell-save-some-history)
+
+		  ;; Truncate buffer for performance
+		  (add-to-list 'eshell-output-filter-functions 'eshell-truncate-buffer)
+
+		  ;; Bind some useful keys for evil-mode
+		  (evil-define-key '(normal insert visual) eshell-mode-map (kbd "C-r") 'counsel-esh-history)
+		  (evil-define-key '(normal insert visual) eshell-mode-map (kbd "<home>") 'eshell-bol)
+		  (evil-normalize-keymaps)
+
+		  (setq eshell-history-size         10000
+				eshell-buffer-maximum-lines 10000
+				eshell-hist-ignoredups t
+				eshell-scroll-to-bottom-on-input t))
+
+		(use-package eshell-git-prompt
+		  )
+
+		(use-package eshell
+		  :hook (eshell-first-time-mode . efs/configure-eshell)
+		  :config
+
+		  (with-eval-after-load 'esh-opt
+			(setq eshell-destroy-buffer-when-process-dies t)
+			(setq eshell-visual-commands '("htop" "zsh" "vim")))
+
+		  (eshell-git-prompt-use-theme 'powerline))
+  (use-package vterm-toggle
+	  :ensure t
+	:bind
+	(("C-`"        . vterm-toggle)
+	 :map vterm-mode-map
+	 ("<C-return>" . vterm-toggle-insert-cd))
+	:config
+	(add-to-list 'display-buffer-alist
+	   '("\*vterm\*"
+		 (display-buffer-in-side-window)
+		 (window-height . 0.3)
+		 (side . bottom)
+		 (slot . 0))))
+#+end_src
+
+#+RESULTS:
+
+* Multiple Cursors
+
+#+begin_src emacs-lisp
+(use-package multiple-cursors
+  :ensure t
+  :bind (("M-." . mc/mark-next-like-this)
+         ("M-," . mc/unmark-next-like-this)
+         ("C-S-<mouse-1>" . mc/add-cursor-on-click)))
 #+end_src
