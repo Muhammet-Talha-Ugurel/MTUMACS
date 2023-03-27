@@ -261,7 +261,7 @@
 	"t t"   '(toggle-truncate-lines :which-key "Toggle truncate lines"))
 ;; TAB mode keys
 (nvmap :keymaps 'override :prefix "SPC"
-	"t n"   '(tab-next :which-key "Swich to next tab")
+	"t n"   '(tab-new :which-key "New tab")
 	"t ."   '(tab-next :which-key "Swich to next tab")
 	"t ,"   '(tab-previous :which-key "Swich to previous tab"))
 ;; ORG mode keys
@@ -412,3 +412,18 @@
   :bind (("M-." . mc/mark-next-like-this)
          ("M-," . mc/unmark-next-like-this)
          ("C-S-<mouse-1>" . mc/add-cursor-on-click)))
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+	 '("2dd4951e967990396142ec54d376cced3f135810b2b69920e77103e0bcedfba9" "944d52450c57b7cbba08f9b3d08095eb7a5541b0ecfb3a0a9ecd4a18f3c28948" default))
+ '(package-selected-packages
+	 '(org-roam vterm eshell-vterm arduino-mode yasnippet which-key vterm-toggle visual-fill-column use-package soothe-theme smex rust-mode rainbow-delimiters pacmacs org-bullets multiple-cursors minimap magit ivy-rich ivy-prescient helm-xref helm-lsp general gcmh flycheck evil-tutor evil-collection eterm-256color eshell-git-prompt elfeed-goodies doom-themes doom-modeline dashboard dap-mode counsel-projectile company beacon all-the-icons)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
