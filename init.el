@@ -118,19 +118,21 @@
   :hook (prog-mode . rainbow-delimiters-mode))
 
 (use-package projectile
-  :diminish projectile-mode
-  :config (projectile-mode)
-  :custom ((projectile-completion-system 'ivy))
-  :bind-keymap
-  ("C-c p" . projectile-command-map)
-  :init
-  ;; NOTE: Set this to the folder where you keep your Git repos!
-  (when (file-directory-p "~/Projects/Code")
-    (setq projectile-project-search-path '("~/Projects/Code")))
-  (setq projectile-switch-project-action #'projectile-dired))
+	:diminish projectile-mode
+	:config (projectile-mode)
+	:custom ((projectile-completion-system 'ivy))
+	:bind-keymap
+	("C-c p" . projectile-command-map)
+	:init
+	;; NOTE: Set this to the folder where you keep your Git repos!
+	(when (file-directory-p "~/Projects/Code")
+		(setq projectile-project-search-path '("~/Projects/Code")))
+	(setq projectile-switch-project-action #'projectile-dired))
 
 (use-package counsel-projectile
-  :config (counsel-projectile-mode))
+	:after counsel
+	:ensure t
+	:config (counsel-projectile-mode))
 
 (use-package magit
   :ensure t)
@@ -138,69 +140,94 @@
  ;;:ensure t)
 
 (defun efs/org-font-setup ()
-  ;; Replace list hyphen with dot
-  (font-lock-add-keywords 'org-mode
-			  '(("^ *\\([-]\\) "
-			     (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+    ;; Replace list hyphen with dot
+    (font-lock-add-keywords 'org-mode
+          '(("^ *\\([-]\\) "
+             (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
 
-  ;; Set faces for heading levels
-  (dolist (face '((org-level-1 . 1.2)
-		  (org-level-2 . 1.1)
-		  (org-level-3 . 1.05)
-		  (org-level-4 . 1.0)
-		  (org-level-5 . 1.1)
-		  (org-level-6 . 1.1)
-		  (org-level-7 . 1.1)
-		  (org-level-8 . 1.1)))
-    )
+    ;; Set faces for heading levels
+    (dolist (face '((org-level-1 . 1.2)
+        (org-level-2 . 1.1)
+        (org-level-3 . 1.05)
+        (org-level-4 . 1.0)
+        (org-level-5 . 1.1)
+        (org-level-6 . 1.1)
+        (org-level-7 . 1.1)
+        (org-level-8 . 1.1)))
+      )
 
-  ;; Ensure that anything that should be fixed-pitch in Org files appears that way
-  (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
-  (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
-  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-  (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
+    ;; Ensure that anything that should be fixed-pitch in Org files appears that way
+    (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+    (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
+    (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
+    (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+    (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+    (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+    (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
 
-(use-package org
-:ensure t
-  :hook (org-mode . efs/org-mode-setup)
-  :config
-  (setq org-ellipsis " ▾")
-  (efs/org-font-setup))
+(defun efs/org-mode-setup ()
+ (display-line-numbers-mode)
+  (visual-line-mode 1))
 
-(use-package org-bullets
-:ensure t
+  (use-package org
+    :ensure t
+    :hook (org-mode . efs/org-mode-setup)
+    :config
+    (setq org-ellipsis " ▾")
+    (efs/org-font-setup))
+
+  (use-package org-roam
   :after org
-  :hook (org-mode . org-bullets-mode)
+  :ensure t
   :custom
-  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+  (org-roam-directory "~/Roam")
+  :bind (("C-c n l"   . org-roam)
+       ("C-c n f"   . org-roam-find-file)
+       ("C-c n g"   . org-roam-graph)))
 
-(defun efs/org-mode-visual-fill ()
-  (setq visual-fill-column-width 120
-	visual-fill-column-center-text t)
-  (visual-fill-column-mode 1))
 
-(use-package visual-fill-column
-:ensure t
-  :hook (org-mode . efs/org-mode-visual-fill))
+  (use-package org-bullets
+  :ensure t
+    :after org
+    :hook (org-mode . org-bullets-mode)
+    :custom
+    (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+
+  (defun efs/org-mode-visual-fill ()
+    (setq visual-fill-column-width 120
+    visual-fill-column-center-text t)
+    (visual-fill-column-mode 1))
+
+  (use-package visual-fill-column
+  :ensure t
+    :hook (org-mode . efs/org-mode-visual-fill))
+  (setq org-directory "~/org/"
+          org-agenda-files '("~/org/agenda.org"))
 
 (use-package evil
-  :ensure t
-  :init      ;; tweak evil's configuration before loading it
-  (setq evil-want-integration t) ;; This is optional since it's already set to t by default.
-  (setq evil-want-keybinding nil)
-  (setq evil-vsplit-window-right t)
-  (setq evil-split-window-below t)
-  (setq evil-want-C-i-jump nil)
-  (evil-mode))
+	:ensure t
+	:init      ;; tweak evil's configuration before loading it
+	(setq evil-want-integration t) ;; This is optional since it's already set to t by default.
+	(setq evil-want-keybinding nil)
+	(setq evil-vsplit-window-right t)
+	(setq evil-split-window-below t)
+	(setq evil-want-C-i-jump nil)
+	(evil-mode))
 (use-package evil-collection
-  :after evil
-  :config
-  (setq evil-collection-mode-list '(dashboard dired ibuffer))
-  (evil-collection-init))
-(use-package evil-tutor)
+	:after evil
+	:ensure t
+	:config
+	(setq evil-collection-mode-list '(dashboard dired ibuffer))
+	(evil-collection-init))
+(use-package evil-tutor
+:after evil
+:ensure t)
+
+(use-package yasnippet
+	:ensure t
+	:config
+	(setq yas-snippet-dirs '("~/.emacs-mtumacs.d/snippets"))
+	(yas-global-mode 1))
 
 (use-package general
   :ensure t
@@ -238,6 +265,7 @@
 	"b K"   '(kill-buffer :which-key "Kill buffer"))
 ;;FILE keys
 (nvmap :states '(normal visual) :keymaps 'override :prefix "SPC"
+	"f"     '(:which-key "File")
 	"."     '(find-file :which-key "Find file")
 	"f f"   '(find-file :which-key "Find file")
 	"f r"   '(counsel-recentf :which-key "Recent files")
@@ -255,17 +283,21 @@
 ;;CONFIG keys
 (nvmap :keymaps 'override :prefix "SPC"
 	"SPC"   '(counsel-M-x :which-key "M-x")
+	"c"     '(:which-key "Compile")
 	"c c"   '(compile :which-key "Compile")
 	"c C"   '(recompile :which-key "Recompile")
+	"r"     '(:which-key "Reload")
 	"r r" '((lambda () (interactive) (load-file "~/.emacs-mtumacs.d/init.el")) :which-key "Reload emacs config")
 	"t t"   '(toggle-truncate-lines :which-key "Toggle truncate lines"))
 ;; TAB mode keys
 (nvmap :keymaps 'override :prefix "SPC"
+	"t"     '(:which-key "TAB & togle")
 	"t n"   '(tab-new :which-key "New tab")
 	"t ."   '(tab-next :which-key "Swich to next tab")
 	"t ,"   '(tab-previous :which-key "Swich to previous tab"))
 ;; ORG mode keys
 (nvmap :keymaps 'override :prefix "SPC"
+	"o"   	'(:which-key "Org")
 	"o *"   '(org-ctrl-c-star :which-key "Org-ctrl-c-star")
 	"o +"   '(org-ctrl-c-minus :which-key "Org-ctrl-c-minus")
 	"o ."   '(counsel-org-goto :which-key "Counsel org goto")
@@ -280,7 +312,10 @@
 	"o B"   '(org-babel-tangle :which-key "Org babel tangle")
 	"o I"   '(org-toggle-inline-images :which-key "Org toggle inline imager")
 	"o T"   '(org-todo-list :which-key "Org todo list")
-	"o a"   '(org-agenda :which-key "Org agenda"))
+	"o R"   '(org-babel-execute-maybe :which-key "Org run source code block")
+	"o a"   '(org-agenda :which-key "Org agenda")
+	"o r"   '(:which-key "Org roam")
+	"o r f" '(org-roam-node-find :which-key "Org roam find node"))
 
 (defun efs/lsp-mode-setup ()
   (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
@@ -382,7 +417,7 @@
 			eshell-scroll-to-bottom-on-input t))
 
 	(use-package eshell-git-prompt
-		)
+	 :ensure t)
 
 	(use-package eshell
 		:hook (eshell-first-time-mode . efs/configure-eshell)
@@ -417,10 +452,9 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-	 '("2dd4951e967990396142ec54d376cced3f135810b2b69920e77103e0bcedfba9" "944d52450c57b7cbba08f9b3d08095eb7a5541b0ecfb3a0a9ecd4a18f3c28948" default))
+ '(org-agenda-files nil)
  '(package-selected-packages
-	 '(org-roam vterm eshell-vterm arduino-mode yasnippet which-key vterm-toggle visual-fill-column use-package soothe-theme smex rust-mode rainbow-delimiters pacmacs org-bullets multiple-cursors minimap magit ivy-rich ivy-prescient helm-xref helm-lsp general gcmh flycheck evil-tutor evil-collection eterm-256color eshell-git-prompt elfeed-goodies doom-themes doom-modeline dashboard dap-mode counsel-projectile company beacon all-the-icons)))
+	 '(org-roam-ui yasnippet which-key vterm-toggle visual-fill-column use-package smex rainbow-delimiters org-roam org-bullets multiple-cursors minimap magit lsp-mode ivy-rich general evil-tutor evil-collection eshell-git-prompt doom-themes doom-modeline dashboard counsel-projectile beacon all-the-icons)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

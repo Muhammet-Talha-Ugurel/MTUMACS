@@ -1,5 +1,5 @@
 #+AUTHOR: MTU
-#+PROPERTY: header-args :tangle init.el
+
 
 * Disable Menubar, Toolbars and Scrollbars
 
@@ -10,6 +10,17 @@
   (tool-bar-mode -1)
   (scroll-bar-mode -1)
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+#+end_src
+
+* Back up Files
+
+#+begin_src emacs-lisp
+(setq backup-directory-alist '(("." . "~/.emacs-mtumacs.d/backup"))
+      backup-by-copying      t  ; Don't de-link hard links
+      version-control        t  ; Use version numbers on backups
+      delete-old-versions    t  ; Automatically delete excess backups:
+      kept-new-versions      20 ; how many of the newest versions to keep
+      kept-old-versions      5) ; and how many of the old
 #+end_src
 
 * Package Managment
@@ -68,8 +79,7 @@
 #+begin_src emacs-lisp
 	(global-display-line-numbers-mode 1)
 	(setq display-line-numbers-type 'relative)
-  (dolist (mode '(org-mode-hook
-				  term-mode-hook
+  (dolist (mode '(term-mode-hook
 				  shell-mode-hook
 				  eshell-mode-hook))
 	(add-hook mode (lambda () (display-line-numbers-mode 0))))
@@ -77,6 +87,9 @@
 	:ensure t)
 	(beacon-mode t)
 #+end_src
+
+#+RESULTS:
+: t
 	
 ** Dashboard
 
@@ -195,21 +208,25 @@
 ** Projectile
 
 #+begin_src emacs-lisp
-(use-package projectile
-  :diminish projectile-mode
-  :config (projectile-mode)
-  :custom ((projectile-completion-system 'ivy))
-  :bind-keymap
-  ("C-c p" . projectile-command-map)
-  :init
-  ;; NOTE: Set this to the folder where you keep your Git repos!
-  (when (file-directory-p "~/Projects/Code")
-    (setq projectile-project-search-path '("~/Projects/Code")))
-  (setq projectile-switch-project-action #'projectile-dired))
+	(use-package projectile
+		:diminish projectile-mode
+		:config (projectile-mode)
+		:custom ((projectile-completion-system 'ivy))
+		:bind-keymap
+		("C-c p" . projectile-command-map)
+		:init
+		;; NOTE: Set this to the folder where you keep your Git repos!
+		(when (file-directory-p "~/Projects/Code")
+			(setq projectile-project-search-path '("~/Projects/Code")))
+		(setq projectile-switch-project-action #'projectile-dired))
 
-(use-package counsel-projectile
-  :config (counsel-projectile-mode))
+	(use-package counsel-projectile
+		:after counsel
+		:ensure t
+		:config (counsel-projectile-mode))
 #+end_src
+
+#+RESULTS:
 
 ** Magit
 
@@ -223,92 +240,103 @@
 ** ORG mode
 
 #+begin_src emacs-lisp
-			(defun efs/org-font-setup ()
-				;; Replace list hyphen with dot
-				(font-lock-add-keywords 'org-mode
-							'(("^ *\\([-]\\) "
-								 (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+		(defun efs/org-font-setup ()
+			;; Replace list hyphen with dot
+			(font-lock-add-keywords 'org-mode
+						'(("^ *\\([-]\\) "
+							 (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
 
-				;; Set faces for heading levels
-				(dolist (face '((org-level-1 . 1.2)
-						(org-level-2 . 1.1)
-						(org-level-3 . 1.05)
-						(org-level-4 . 1.0)
-						(org-level-5 . 1.1)
-						(org-level-6 . 1.1)
-						(org-level-7 . 1.1)
-						(org-level-8 . 1.1)))
-					)
+			;; Set faces for heading levels
+			(dolist (face '((org-level-1 . 1.2)
+					(org-level-2 . 1.1)
+					(org-level-3 . 1.05)
+					(org-level-4 . 1.0)
+					(org-level-5 . 1.1)
+					(org-level-6 . 1.1)
+					(org-level-7 . 1.1)
+					(org-level-8 . 1.1)))
+				)
 
-				;; Ensure that anything that should be fixed-pitch in Org files appears that way
-				(set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
-				(set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
-				(set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
-				(set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
-				(set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
-				(set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-				(set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
+			;; Ensure that anything that should be fixed-pitch in Org files appears that way
+			(set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+			(set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
+			(set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
+			(set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+			(set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+			(set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+			(set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
 
-			(use-package org
+	(defun efs/org-mode-setup ()
+	 (display-line-numbers-mode 1)
+		(visual-line-mode 1))
+
+		(use-package org
 			:ensure t
-				:hook (org-mode . efs/org-mode-setup)
-				:config
-				(setq org-ellipsis " ▾")
-				(efs/org-font-setup))
+			:hook (org-mode . efs/org-mode-setup)
+			:config
+			(setq org-ellipsis " ▾")
+			(efs/org-font-setup))
 
-			(use-package org-roam
-			:ensure t
+		(use-package org-roam
+		:after org
+		:ensure t
+		:custom
+		(org-roam-directory "~/Org/Roam")
+		:bind (("C-c n l"   . org-roam)
+				 ("C-c n f"   . org-roam-node-find)
+				 ("C-c n g"   . org-roam-graph)))
+
+		(use-package org-roam-ui
+		:after org-roam
+		:ensure t)
+
+		
+		(use-package org-bullets
+		:ensure t
+			:after org
+			:hook (org-mode . org-bullets-mode)
 			:custom
-			(org-roam-directory "~/Roam")
-			:bind (("C-c n l"   . org-roam)
-           ("C-c n f"   . org-roam-find-file)
-           ("C-c n d"   . org-roam-dailies-find-date)
-           ("C-c n c"   . org-roam-dailies-capture-today)
-           ("C-c n C r" . org-roam-dailies-capture-tomorrow)
-           ("C-c n t"   . org-roam-dailies-find-today)
-           ("C-c n y"   . org-roam-dailies-find-yesterday)
-           ("C-c n r"   . org-roam-dailies-find-tomorrow)
-           ("C-c n g"   . org-roam-graph)))
+			(org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
 
+		(defun efs/org-mode-visual-fill ()
+			(setq visual-fill-column-width 120
+			visual-fill-column-center-text t)
+			(visual-fill-column-mode 1))
 
-			(use-package org-bullets
-			:ensure t
-				:after org
-				:hook (org-mode . org-bullets-mode)
-				:custom
-				(org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
-
-			(defun efs/org-mode-visual-fill ()
-				(setq visual-fill-column-width 120
-				visual-fill-column-center-text t)
-				(visual-fill-column-mode 1))
-
-			(use-package visual-fill-column
-			:ensure t
-				:hook (org-mode . efs/org-mode-visual-fill))
-		(setq org-directory "~/org/"
-					org-agenda-files '("~/org/agenda.org"))
+		(use-package visual-fill-column
+		:ensure t
+			:hook (org-mode . efs/org-mode-visual-fill))
+		(setq org-directory "~/Org/"
+						org-agenda-files '("~/Org/agenda.org"))
 #+end_src
+
+#+RESULTS:
+| ~/org/agenda.org |
 	
 ** EVIL mode installation and set up
 
 #+begin_src emacs-lisp
-  (use-package evil
-    :ensure t
-    :init      ;; tweak evil's configuration before loading it
-    (setq evil-want-integration t) ;; This is optional since it's already set to t by default.
-    (setq evil-want-keybinding nil)
-    (setq evil-vsplit-window-right t)
-    (setq evil-split-window-below t)
-    (setq evil-want-C-i-jump nil)
-    (evil-mode))
-  (use-package evil-collection
-    :after evil
-    :config
-    (setq evil-collection-mode-list '(dashboard dired ibuffer))
-    (evil-collection-init))
-  (use-package evil-tutor)
+		(use-package evil
+			:ensure t
+			:init      ;; tweak evil's configuration before loading it
+			(setq evil-want-integration t) ;; This is optional since it's already set to t by default.
+			(setq evil-want-keybinding nil)
+			(setq evil-vsplit-window-right t)
+			(setq evil-split-window-below t)
+			(setq evil-want-C-i-jump nil)
+			(evil-mode))
+		(use-package evil-collection
+			:after evil
+			:ensure t
+			:config
+			(setq evil-collection-mode-list '(dashboard dired ibuffer))
+			(evil-collection-init))
+		(use-package evil-tutor
+		:after evil
+		:ensure t)
 #+end_src
+
+#+RESULTS:
 
 ** YASnippet
 
@@ -316,6 +344,7 @@
 
 #+begin_src emacs-lisp
 	(use-package yasnippet
+		:ensure t
 		:config
 		(setq yas-snippet-dirs '("~/.emacs-mtumacs.d/snippets"))
 		(yas-global-mode 1))
@@ -392,11 +421,11 @@
 	"c c"   '(compile :which-key "Compile")
 	"c C"   '(recompile :which-key "Recompile")
 	"r"     '(:which-key "Reload")
-	"r r" '((lambda () (interactive) (load-file "~/.emacs-mtumacs.d/init.el")) :which-key "Reload emacs config")
-	"t t"   '(toggle-truncate-lines :which-key "Toggle truncate lines"))
+	"r r" '((lambda () (interactive) (load-file "~/.emacs-mtumacs.d/init.el")) :which-key "Reload emacs config"))
 ;; TAB mode keys
 (nvmap :keymaps 'override :prefix "SPC"
 	"t"     '(:which-key "TAB & togle")
+	"t t"   '(toggle-truncate-lines :which-key "Toggle truncate lines")
 	"t n"   '(tab-new :which-key "New tab")
 	"t ."   '(tab-next :which-key "Swich to next tab")
 	"t ,"   '(tab-previous :which-key "Swich to previous tab"))
@@ -420,7 +449,11 @@
 	"o R"   '(org-babel-execute-maybe :which-key "Org run source code block")
 	"o a"   '(org-agenda :which-key "Org agenda")
 	"o r"   '(:which-key "Org roam")
-	"o r f" '(org-roam-node-find :which-key "Org roam find node"))
+	"o r f" '(org-roam-node-find :which-key "Org roam find node")`
+	"o r s" '(org-roam-db-sync :which-key "Org roam db sync")`
+	"o r i" '(org-roam-node-insert :which-key "Org roam insert node")`
+	"o r f" '(org-roam-buffer-toggle :which-key "Org roam get linked nodes")
+	"o r o" '(org-open-at-point :which-key "Org roam open link"))
 #+end_src
 
 #+RESULTS:
@@ -544,7 +577,7 @@
 				eshell-scroll-to-bottom-on-input t))
 
 		(use-package eshell-git-prompt
-		  )
+		 :ensure t)
 
 		(use-package eshell
 		  :hook (eshell-first-time-mode . efs/configure-eshell)
@@ -581,3 +614,4 @@
          ("M-," . mc/unmark-next-like-this)
          ("C-S-<mouse-1>" . mc/add-cursor-on-click)))
 #+end_src
+
