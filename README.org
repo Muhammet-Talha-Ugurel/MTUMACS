@@ -1,5 +1,4 @@
 #+AUTHOR: MTU
-#+PROPERTY: header-args :tangle init.el
 
 
 * Disable Menubar, Toolbars and Scrollbars
@@ -36,7 +35,7 @@
   (package-initialize)
 #+end_src
 
-** [#B] Setup use package for easy package magetment
+** Setup use package for easy package magetment
 
 #+begin_src emacs-lisp
 (unless (package-installed-p 'use-package)
@@ -383,7 +382,7 @@
 (which-key-mode)
 #+end_src
 
-** TODO Key bindings
+** Key bindings
 
 #+begin_src emacs-lisp
 ;; BUFFER keys
@@ -456,6 +455,8 @@
 	"o r f" '(org-roam-buffer-toggle :which-key "Org roam get linked nodes")
 	"o r o" '(org-open-at-point :which-key "Org roam open link"))
 #+end_src
+
+#+RESULTS:
 
 * LSP
 
