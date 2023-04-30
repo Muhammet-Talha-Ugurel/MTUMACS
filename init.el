@@ -454,7 +454,7 @@
  ;; If there is more than one, they won't work right.
  '(org-agenda-files nil)
  '(package-selected-packages
-	 '(org-roam-ui yasnippet which-key vterm-toggle visual-fill-column use-package smex rainbow-delimiters org-roam org-bullets multiple-cursors minimap magit lsp-mode ivy-rich general evil-tutor evil-collection eshell-git-prompt doom-themes doom-modeline dashboard counsel-projectile beacon all-the-icons)))
+	 '(rust-mode org-roam-ui yasnippet which-key vterm-toggle visual-fill-column use-package smex rainbow-delimiters org-roam org-bullets multiple-cursors minimap magit lsp-mode ivy-rich general evil-tutor evil-collection eshell-git-prompt doom-themes doom-modeline dashboard counsel-projectile beacon all-the-icons)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
